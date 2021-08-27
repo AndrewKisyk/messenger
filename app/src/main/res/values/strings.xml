@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Test task</string>
+    <string name="create_new_notification">Create new <br/> notification</string>
 </resources>
