@@ -52,6 +52,12 @@ dependencies {
     // Kotlin
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
 
+    //RxJava
+    def rxJava = '2.1.1'
+    implementation "io.reactivex.rxjava2:rxandroid:$rxJava"
+    implementation "io.reactivex.rxjava2:rxjava:$rxJava"
 
+    //RxBinding
+    implementation 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
 
 }

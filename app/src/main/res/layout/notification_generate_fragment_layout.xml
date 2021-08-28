@@ -131,7 +131,6 @@
             android:elevation="4dp"
             android:src="@drawable/ic_minus"
             android:visibility="@{fragmentSequenceNumber == 1 ? View.GONE : View.VISIBLE}"
-            android:onClick="@{() -> viewPagerController.removeItemFromTheEndOfViewPager()}"
             app:layout_constraintBottom_toTopOf="@+id/guideline7"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
@@ -139,6 +138,7 @@
             app:layout_constraintTop_toTopOf="@+id/guideline6" />
 
         <ImageButton
+            android:id="@+id/plusBtn"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@drawable/white_ellipse"
@@ -147,7 +147,6 @@
             android:elevation="4dp"
             android:foreground="@drawable/circle_ripple"
             android:src="@drawable/ic_plus"
-            android:onClick="@{() -> viewPagerController.addFragmentToTheEndOfViewPager()}"
             app:layout_constraintBottom_toTopOf="@+id/guideline7"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toStartOf="@+id/guideline3"
