@@ -12,7 +12,9 @@ import com.dreamdev.testtask.databinding.ActivityMainBinding
 import com.dreamdev.testtask.enums.ItemsChangesType
 import com.dreamdev.testtask.enums.ViewPagerAnimationState
 import com.dreamdev.testtask.framents.NotificationGenerationFragment
+import com.dreamdev.testtask.helpers.NotificationHelper
 import com.dreamdev.testtask.helpers.PageChangeCallback
+import com.dreamdev.testtask.interfaces.NotificationController
 import com.dreamdev.testtask.interfaces.ViewPagerController
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -20,16 +22,19 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController {
+class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
+    NotificationController {
     private val TAG = "MainActivity"
     private var pagerAdapter: DynamicPagerAdapter? = null
     private var pageChangeCallback: PageChangeCallback? = null
     private var lastFragmentRemovingAction: Boolean = false
+    private var notificationHelper: NotificationHelper? = null
     private val disposables = CompositeDisposable()
     override fun layoutId(): Int = R.layout.activity_main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        notificationHelper = NotificationHelper(this)
         initViewPagerAdapter()
         initViewPager()
         initViewPagerCallBacks()
@@ -122,9 +127,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController {
         }, ::logError))
     }
 
-
     private fun logError(e: Throwable) {
         Log.d(TAG, e.toString())
+    }
+
+    override fun onDestroy() {
+        disposables.clear()
+        super.onDestroy()
+    }
+
+    override fun sendNotification(notificationId: Int) {
+        notificationHelper?.showNotification(
+            notificationId = notificationId,
+            builder = notificationHelper!!.getNotification(
+                getString(R.string.notification_title),
+                getString(R.string.notification_body) + " $notificationId"
+            )
+        )
+    }
+
+    override fun cancelNotification(notificationId: Int) {
+        notificationHelper?.cancelNotification(notificationId)
     }
 
 }

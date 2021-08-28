@@ -6,21 +6,21 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.dreamdev.testtask.enums.ItemsChangesType
+import com.dreamdev.testtask.framents.NotificationGenerationFragment
 import io.reactivex.Observable
 
 class DynamicPagerAdapter(@androidx.annotation.NonNull fm: FragmentManager, lifecycle: Lifecycle) :
     FragmentStateAdapter(fm, lifecycle) {
 
-    private val items = mutableListOf<Fragment>()
+    private val items = mutableListOf<NotificationGenerationFragment>()
 
     override fun getItemCount(): Int = items.size
 
-    override fun createFragment(position: Int): Fragment {
+    override fun createFragment(position: Int): NotificationGenerationFragment {
         return items[position]
     }
 
-
-    fun setItems(newItems: List<Fragment>) {
+    fun setItems(newItems: List<NotificationGenerationFragment>) {
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -30,16 +30,20 @@ class DynamicPagerAdapter(@androidx.annotation.NonNull fm: FragmentManager, life
         return items.size + 1
     }
 
-    fun getItem(position: Int): Fragment {
+    fun getItem(position: Int): NotificationGenerationFragment {
         return items[position]
     }
 
-    fun addFragment(fragment: Fragment) {
+    fun addFragment(fragment: NotificationGenerationFragment) {
         items.add(fragment)
         passToObservable(ItemsChangesType.ITEM_ADD)
     }
 
     fun removeLastFragment() {
+        val fragment = getItem(getLastFragmentPosition())
+        fragment.cancelThisFragmetNotification()
+        fragment.onDestroy()
+        getItem(getLastFragmentPosition()).onDestroy()
         items.removeLast()
         passToObservable(ItemsChangesType.ITEM_REMOVED)
     }

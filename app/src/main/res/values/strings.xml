@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Test task</string>
     <string name="create_new_notification">Create new <br/> notification</string>
+    <string name="notification_channel_default">Primary Channel</string>
+    <string name="notification_title">You create a notification</string>
+    <string name="notification_body">Notification</string>
+    <string name="notification_channel_description">Dafault channel for notidication.</string>
+
 </resources>
