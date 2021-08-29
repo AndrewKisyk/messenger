@@ -9,30 +9,41 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
+import android.os.Bundle
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.dreamdev.testtask.R
 import com.dreamdev.testtask.activities.MainActivity
+import com.dreamdev.testtask.constants.IntentExtras
 
 open class NotificationHelper(context: Context) : ContextWrapper(context) {
-    val PRIMARY_CHANNEL = "default"
 
+    val PRIMARY_CHANNEL = "default"
     init {
         createNotificationChannel()
     }
 
-    fun getNotification(title: String, body: String): NotificationCompat.Builder {
-        val intent = Intent(baseContext, MainActivity::class.java).apply {
-            flags = (Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            baseContext,
-            0,
-            intent,
-            PendingIntent.FLAG_CANCEL_CURRENT
-        )
+    companion object {
+        val MESSAGE_ACTION = "MesageAction"
+    }
+
+    fun getNotification(
+        title: String,
+        body: String,
+        sequenseNumber: Int
+    ): NotificationCompat.Builder {
+
+        val messageIntent = Intent(MESSAGE_ACTION).apply {
+            putExtra(IntentExtras.FRAGMENT_SEQUENCE_NUMBER, sequenseNumber) }
+
+        val pendingIntent =
+            PendingIntent.getBroadcast(
+                baseContext,
+                0,
+                messageIntent, PendingIntent.FLAG_UPDATE_CURRENT
+            )
 
         return NotificationCompat.Builder(baseContext, PRIMARY_CHANNEL)
             .setContentTitle(title)
@@ -66,6 +77,7 @@ open class NotificationHelper(context: Context) : ContextWrapper(context) {
     }
 
     fun showNotification(notificationId: Int, builder: NotificationCompat.Builder) {
+
         with(NotificationManagerCompat.from(baseContext)) {
             notify(notificationId, builder.build())
         }

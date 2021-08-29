@@ -17,7 +17,8 @@ class FragmentNotificationHelper(context: Context) : NotificationHelper(context)
             notificationId = id,
             builder = getNotification(
                 getString(R.string.notification_title),
-                getString(R.string.notification_body) + " $fragmentSequenceNumber"
+                getString(R.string.notification_body) + " $fragmentSequenceNumber",
+                fragmentSequenceNumber
             )
         )
     }
@@ -26,8 +27,8 @@ class FragmentNotificationHelper(context: Context) : NotificationHelper(context)
         fragmentNotificationIds[fragmentSequenceNumber]?.forEach {
             cancelNotification(it)
         }
-        fragmentNotificationIds.remove(fragmentSequenceNumber)
 
+        fragmentNotificationIds.remove(fragmentSequenceNumber)
     }
 
     private fun putIdToFragmentNotificationIds(fragmentSequenceNumber: Int, id: Int) {

@@ -19,6 +19,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver android:name="com.dreamdev.testtask.utils.NotificationReceiver"  android:exported="true">
+            <intent-filter>
+
+                <category android:name="android.intent.category.APP_MESSAGING"/>
+
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

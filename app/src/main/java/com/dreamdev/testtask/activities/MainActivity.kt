@@ -1,13 +1,15 @@
 package com.dreamdev.testtask.activities
 
 
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
+
 import com.dreamdev.testtask.R
 import com.dreamdev.testtask.adapters.DynamicPagerAdapter
 import com.dreamdev.testtask.base.BaseActivity
 import com.dreamdev.testtask.constants.FragmentArguments
+
 import com.dreamdev.testtask.databinding.ActivityMainBinding
 import com.dreamdev.testtask.enums.ItemsChangesAction
 import com.dreamdev.testtask.enums.ViewPagerAnimationState
@@ -17,7 +19,12 @@ import com.dreamdev.testtask.helpers.NotificationHelper
 import com.dreamdev.testtask.helpers.PageChangeCallback
 import com.dreamdev.testtask.interfaces.NotificationController
 import com.dreamdev.testtask.interfaces.ViewPagerController
+import com.dreamdev.testtask.utils.NotificationReceiver
+import com.dreamdev.testtask.utils.Preferences
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -29,21 +36,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
     private var lastFragmentRemovingAction: Boolean = false
     private var notificationHelper: FragmentNotificationHelper? = null
     private val disposables = CompositeDisposable()
+    private var notificationReceiver: NotificationReceiver? = null
+    private var preferences: Preferences? = null
     override fun layoutId(): Int = R.layout.activity_main
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initFragmentNotificationHelper()
+        preferences = Preferences(this)
+        setUpViewPager()
+        setUpNotifications()
+    }
+
+    private fun setUpViewPager() {
         initViewPagerAdapter()
         initViewPager()
         initViewPagerCallBacks()
         subscribeOnDynamicPagerItemsSetChange()
         subscribeOnPagerAnimation()
-        addFragmentToTheEndOfViewPager()
-    }
-
-    private fun initFragmentNotificationHelper() {
-        notificationHelper = FragmentNotificationHelper(this)
+        restoreViewPager()
     }
 
     private fun initViewPager() {
@@ -59,6 +69,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
         pager.registerOnPageChangeCallback(pageChangeCallback!!)
     }
 
+    private fun restoreViewPager() {
+        disposables.add(
+            Single.just(preferences!!.fragmentsCount)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ repeat(it, { addFragmentToTheEndOfViewPager() }) }, ::logError)
+        )
+    }
+
+    private fun saveViewPagerFragmentCount() {
+        disposables.add(Single.just(pagerAdapter?.itemCount)
+            .subscribeOn(Schedulers.io())
+            .doOnSuccess { preferences!!.fragmentsCount = it ?: 1 }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ Log.d(TAG, "Saved fragments count ") }, ::logError)
+        )
+    }
 
     override fun addFragmentToTheEndOfViewPager() {
         pagerAdapter?.startAdditionFragmentAction(
@@ -77,9 +104,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
         }
     }
 
-    private fun goToFragment(fragmentSequenceNumber: Int) {
+    private fun goToFragment(fragmentPosition: Int) {
         pager.isUserInputEnabled = false
-        pager.currentItem = fragmentSequenceNumber
+        pager.currentItem = fragmentPosition
     }
 
     private fun provideNewNotificationGenerationFragment(
@@ -101,10 +128,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
                             is ItemsChangesAction.Addition -> {
                                 dynamicPagerAdapter.addFragment(itemsChangesType.item)
                                 goToFragment(dynamicPagerAdapter.getLastFragmentPosition())
+                                saveViewPagerFragmentCount()
                             }
                             is ItemsChangesAction.Removing -> {
                                 cancelNotifications(fragmentSequenceNumber = pagerAdapter!!.itemCount)
-                               pager.post {  dynamicPagerAdapter.removeLastFragment() }
+                                pager.post { dynamicPagerAdapter.removeLastFragment() }
                             }
                         }
                     }, ::logError)
@@ -133,10 +161,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
         }, ::logError))
     }
 
+    private fun setUpNotifications() {
+        initFragmentNotificationHelper()
+        setUpReceiver()
+        subscribeOnNotificationPressed()
+    }
 
+    private fun setUpReceiver() {
+        val filter = IntentFilter(NotificationHelper.MESSAGE_ACTION)
+        notificationReceiver = NotificationReceiver()
+        registerReceiver(notificationReceiver, filter)
+    }
+
+    private fun subscribeOnNotificationPressed() {
+        notificationReceiver?.notificationPressedObservable
+            ?.subscribe(::goToFragment, ::logError)
+            ?.let { disposables.add(it) }
+    }
+
+    private fun initFragmentNotificationHelper() {
+        notificationHelper = FragmentNotificationHelper(this)
+    }
 
     override fun sendNotification(fragmentSequenceNumber: Int) {
-       notificationHelper?.createNotificationByFragmentSequenceNumber(fragmentSequenceNumber)
+        notificationHelper?.createNotificationByFragmentSequenceNumber(fragmentSequenceNumber)
     }
 
     private fun cancelNotifications(fragmentSequenceNumber: Int) {
@@ -144,7 +192,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
     }
 
     override fun onDestroy() {
-        disposables.clear()
         super.onDestroy()
+        disposables.clear()
+        unregisterReceiver(notificationReceiver)
     }
 }
