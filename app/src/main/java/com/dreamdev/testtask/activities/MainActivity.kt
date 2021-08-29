@@ -128,6 +128,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
                         lastFragmentRemovingAction = false
                     }
                 }
+                null -> return@subscribe
             }
         }, ::logError))
     }
