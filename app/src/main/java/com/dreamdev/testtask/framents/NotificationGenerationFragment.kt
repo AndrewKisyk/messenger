@@ -16,6 +16,7 @@ import com.dreamdev.testtask.interfaces.NotificationController
 import com.dreamdev.testtask.interfaces.ViewPagerController
 import com.jakewharton.rxbinding2.view.RxView
 import kotlinx.android.synthetic.main.notification_generate_fragment_layout.*
+import java.security.SecureRandom
 import kotlin.math.min
 
 class NotificationGenerationFragment : BaseFragment<NotificationGenerateFragmentLayoutBinding>() {
@@ -23,8 +24,9 @@ class NotificationGenerationFragment : BaseFragment<NotificationGenerateFragment
     override fun layoutId(): Int = R.layout.notification_generate_fragment_layout
     private var viewPagerController: ViewPagerController? = null
     private var notificationController: NotificationController? = null
-    private var notificationHelper: NotificationHelper? = null
     private var fragmentSequenceNumber: Int? = null
+    private val notificationIds = mutableListOf<Int>()
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -63,13 +65,13 @@ class NotificationGenerationFragment : BaseFragment<NotificationGenerateFragment
         }
 
         notificationBtn.setOnClickListener {
-            notificationController?.sendNotification(fragmentSequenceNumber!!)
+            sendNotification()
         }
 
     }
 
-    fun cancelThisFragmetNotification() {
-        notificationController?.cancelNotification(fragmentSequenceNumber!!)
+    private fun sendNotification() {
+        notificationController?.sendNotification(fragmentSequenceNumber!!)
     }
 
     override fun onAttach(context: Context) {

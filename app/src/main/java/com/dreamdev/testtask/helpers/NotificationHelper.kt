@@ -18,8 +18,9 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.dreamdev.testtask.R
 import com.dreamdev.testtask.activities.MainActivity
+import java.security.SecureRandom
 
-class NotificationHelper(context: Context) : ContextWrapper(context) {
+open class NotificationHelper(context: Context) : ContextWrapper(context) {
     val PRIMARY_CHANNEL = "default"
 
     init {
@@ -27,12 +28,12 @@ class NotificationHelper(context: Context) : ContextWrapper(context) {
     }
 
     fun getNotification(title: String, body: String): NotificationCompat.Builder {
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent(baseContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(this, 0, intent, 0)
-        return NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+            PendingIntent.getActivity(baseContext, 0, intent, 0)
+        return NotificationCompat.Builder(baseContext, PRIMARY_CHANNEL)
             .setContentTitle(title)
             .setContentText(body)
             .setSmallIcon(R.drawable.ic_messenger_icon)
@@ -41,7 +42,6 @@ class NotificationHelper(context: Context) : ContextWrapper(context) {
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setFullScreenIntent(pendingIntent, true)
             .setAutoCancel(true)
-
     }
 
     private fun getIcon(): Bitmap? {
@@ -51,8 +51,6 @@ class NotificationHelper(context: Context) : ContextWrapper(context) {
     }
 
     private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
             val name = getString(R.string.notification_channel_default)
@@ -60,7 +58,6 @@ class NotificationHelper(context: Context) : ContextWrapper(context) {
             val channel = NotificationChannel(PRIMARY_CHANNEL, name, importance)
             channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             channel.description = descriptionText
-            // Register the channel with the system
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
@@ -68,15 +65,13 @@ class NotificationHelper(context: Context) : ContextWrapper(context) {
     }
 
     fun showNotification(notificationId: Int, builder: NotificationCompat.Builder) {
-        with(NotificationManagerCompat.from(this)) {
-            // notificationId is a unique int for each notification that you must define
+        with(NotificationManagerCompat.from(baseContext)) {
             notify(notificationId, builder.build())
         }
     }
 
     fun cancelNotification(notificationId: Int) {
-        Log.d("NOtification", "Canceling")
-        with(NotificationManagerCompat.from(this)) {
+        with(NotificationManagerCompat.from(baseContext)) {
             cancel(notificationId)
         }
     }

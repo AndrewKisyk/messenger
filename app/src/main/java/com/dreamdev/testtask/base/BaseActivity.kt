@@ -1,6 +1,7 @@
 package com.dreamdev.testtask.base
 
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -20,5 +21,9 @@ abstract class BaseActivity<B: ViewDataBinding> : AppCompatActivity() {
 
     private fun bindContentView(layoutId: Int) {
         binding = DataBindingUtil.setContentView(this, layoutId)
+    }
+
+    protected fun logError(e: Throwable) {
+        e.printStackTrace()
     }
 }
