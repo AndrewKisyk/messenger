@@ -132,9 +132,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), ViewPagerController,
                             }
                             is ItemsChangesAction.Removing -> {
                                 cancelNotifications(fragmentSequenceNumber = pagerAdapter!!.itemCount)
-                                pager.post { dynamicPagerAdapter.removeLastFragment() }
+                                pager.post {
+                                    dynamicPagerAdapter.removeLastFragment()
+                                    saveViewPagerFragmentCount()
+                                }
                             }
                         }
+
                     }, ::logError)
             )
         }
