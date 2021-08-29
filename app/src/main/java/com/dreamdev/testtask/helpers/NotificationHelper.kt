@@ -8,17 +8,13 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
-import android.util.Log
-import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.dreamdev.testtask.R
 import com.dreamdev.testtask.activities.MainActivity
-import java.security.SecureRandom
 
 open class NotificationHelper(context: Context) : ContextWrapper(context) {
     val PRIMARY_CHANNEL = "default"
@@ -29,10 +25,15 @@ open class NotificationHelper(context: Context) : ContextWrapper(context) {
 
     fun getNotification(title: String, body: String): NotificationCompat.Builder {
         val intent = Intent(baseContext, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = (Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
-        val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(baseContext, 0, intent, 0)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            baseContext,
+            0,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
+
         return NotificationCompat.Builder(baseContext, PRIMARY_CHANNEL)
             .setContentTitle(title)
             .setContentText(body)
